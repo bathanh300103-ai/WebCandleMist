@@ -121,23 +121,7 @@ const track = document.getElementById('marqueeTrack');
 const doubled = [...items, ...items];
 track.innerHTML = doubled.map(t => `<span class="marquee-item"><span class="marquee-dot"></span>${t}</span>`).join('');
 
-/* ─── CURSOR ─── */
-const cursor = document.getElementById('cursor');
-document.addEventListener('mousemove', e => {
-  cursor.style.left = e.clientX - 4 + 'px';
-  cursor.style.top = e.clientY - 4 + 'px';
-});
-document.querySelectorAll('a,button').forEach(el => {
-  el.addEventListener('mouseenter', () => cursor.classList.add('expand'));
-  el.addEventListener('mouseleave', () => cursor.classList.remove('expand'));
-});
-// Also apply cursor to dynamically rendered elements
-document.addEventListener('mouseenter', e => {
-  if (e.target.matches('a,button')) cursor.classList.add('expand');
-}, true);
-document.addEventListener('mouseleave', e => {
-  if (e.target.matches('a,button')) cursor.classList.remove('expand');
-}, true);
+
 
 /* ─── SCROLL REVEAL ─── */
 const observer = new IntersectionObserver(entries => {
