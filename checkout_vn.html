@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Thanh toán — MIST</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --orange:#C96A1A;--amber:#E8960A;
+  --green:#2D5226;--green-mid:#3D6B35;
+  --crimson:#7A1525;
+  --cream:#F7F3EC;--white:#FBF9F5;--sand:#EDE6D8;
+  --ink:#1E1C18;--ash:#6A6459;
+  --border:rgba(30,28,24,0.1);--border2:rgba(30,28,24,0.18);
+  --radius:0px;
+}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--white);color:var(--ink);min-height:100vh;padding-bottom:90px}
+
+/* ── NAV ── */
+.top-bar{
+  position:sticky;top:0;z-index:200;
+  background:rgba(251,249,245,0.97);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 1.2rem;height:56px;
+}
+.top-bar-logo img{height:80px;width:auto;object-fit:contain;display:block;transform:scale(1.1);transform-origin:left center}
+.top-back{
+  font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;
+  color:var(--ash);text-decoration:none;
+  border:1px solid var(--border);padding:0.38rem 0.9rem;
+  display:flex;align-items:center;gap:0.4rem;transition:all 0.2s;
+}
+.top-back:hover{color:var(--green);border-color:var(--green-mid)}
+.top-secure{font-size:0.6rem;color:var(--ash);letter-spacing:0.08em;display:flex;align-items:center;gap:0.3rem}
+
+/* ── STEPS ── */
+.steps{
+  display:flex;align-items:center;
+  padding:0 1.2rem;height:48px;
+  background:var(--cream);border-bottom:1px solid var(--border);
+  gap:0;
+}
+.step{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  position:relative;
+}
+.step:not(:last-child)::after{
+  content:'';position:absolute;top:10px;left:calc(50% + 14px);
+  width:calc(100% - 28px);height:1px;background:var(--border2);
+}
+.step.done:not(:last-child)::after{background:var(--green)}
+.step-dot{
+  width:20px;height:20px;border-radius:50%;
+  background:var(--sand);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.55rem;font-weight:400;color:var(--ash);
+  transition:all 0.3s;position:relative;z-index:1;
+}
+.step.active .step-dot{background:var(--green);border-color:var(--green);color:#fff}
+.step.done .step-dot{background:var(--green);border-color:var(--green);color:#fff;font-size:0.7rem}
+.step-label{font-size:0.48rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--ash);margin-top:3px}
+.step.active .step-label{color:var(--green)}
+
+/* ── ORDER SUMMARY TOGGLE ── */
+.summary-toggle{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0.9rem 1.2rem;
+  background:var(--sand);border-bottom:1px solid var(--border);
+  cursor:pointer;user-select:none;
+}
+.summary-toggle-left{display:flex;align-items:center;gap:0.6rem}
+.summary-toggle-icon{font-size:1.1rem}
+.summary-toggle-text{font-size:0.7rem;letter-spacing:0.1em;color:var(--ink)}
+.summary-toggle-count{
+  font-size:0.58rem;letter-spacing:0.1em;color:var(--ash);margin-top:1px
+}
+.summary-toggle-right{display:flex;align-items:center;gap:0.8rem}
+.summary-toggle-total{
+  font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:var(--ink)
+}
+.summary-chevron{font-size:0.7rem;color:var(--ash);transition:transform 0.28s}
+.summary-chevron.open{transform:rotate(180deg)}
+
+.summary-panel{
+  max-height:0;overflow:hidden;
+  transition:max-height 0.4s cubic-bezier(0.4,0,0.2,1);
+  background:var(--cream);border-bottom:1px solid var(--border);
+}
+.summary-panel.open{max-height:600px}
+.summary-inner{padding:1rem 1.2rem 1.2rem}
+
+.sum-item{
+  display:grid;grid-template-columns:52px 1fr auto;
+  gap:0.75rem;align-items:center;
+  padding:0.65rem 0;border-bottom:1px solid var(--border);
+}
+.sum-item:last-of-type{border-bottom:none}
+.sum-img-wrap{position:relative}
+.sum-img{width:52px;height:52px;object-fit:cover;border:1px solid var(--border);display:block}
+.sum-qty-badge{
+  position:absolute;top:-6px;right:-6px;
+  background:var(--ash);color:#fff;
+  width:18px;height:18px;border-radius:50%;
+  font-size:0.55rem;display:flex;align-items:center;justify-content:center;
+}
+.sum-name{font-family:'Cormorant Garamond',serif;font-size:0.92rem;color:var(--ink);line-height:1.2}
+.sum-scent{font-size:0.55rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--green-mid);margin-bottom:2px}
+.sum-price{font-size:0.82rem;color:var(--ink);white-space:nowrap}
+
+.sum-divider{height:1px;background:var(--border);margin:0.7rem 0}
+
+.promo-row{display:flex;gap:0.5rem;margin-bottom:0.9rem}
+.promo-inp{
+  flex:1;font-family:'DM Sans',sans-serif;font-weight:300;font-size:0.82rem;
+  border:1px solid var(--border);background:var(--white);
+  padding:0.55rem 0.85rem;outline:none;transition:border-color 0.2s;
+  color:var(--ink);
+}
+.promo-inp:focus{border-color:var(--green-mid)}
+.promo-inp.error{border-color:var(--crimson)}
+.promo-inp.success{border-color:var(--green-mid)}
+.promo-btn{
+  font-family:'DM Sans',sans-serif;font-size:0.62rem;
+  letter-spacing:0.12em;text-transform:uppercase;
+  background:none;border:1px solid var(--border);
+  color:var(--ash);padding:0 1rem;cursor:pointer;
+  transition:all 0.2s;white-space:nowrap;min-height:40px;
+}
+.promo-btn:active{background:var(--green);color:#fff;border-color:var(--green)}
+
+.sum-lines{}
+.sum-line{
+  display:flex;justify-content:space-between;align-items:baseline;
+  font-size:0.75rem;color:var(--ash);padding:0.3rem 0;
+}
+.sum-line.discount{color:var(--green-mid)}
+.sum-line.total{
+  font-size:0.82rem;color:var(--ink);
+  padding:0.65rem 0 0;margin-top:0.3rem;
+  border-top:1px solid var(--border2);
+}
+.sum-line.total .val{
+  font-family:'Cormorant Garamond',serif;font-size:1.35rem;
+}
+
+/* ── FORM STEPS ── */
+.page{display:none;padding:1.5rem 1.2rem}
+.page.active{display:block}
+
+.page-heading{margin-bottom:1.5rem}
+.page-label{font-size:0.6rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--green-mid);display:block;margin-bottom:0.3rem}
+.page-title{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:300;color:var(--ink);line-height:1.1}
+
+.card{background:var(--cream);border:1px solid var(--border);padding:1.2rem 1.1rem;margin-bottom:1rem}
+.card-label{font-size:0.58rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--ash);margin-bottom:0.9rem;padding-bottom:0.6rem;border-bottom:1px solid var(--border)}
+
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+.fgrp{display:flex;flex-direction:column;gap:0.35rem;margin-bottom:0.85rem}
+.fgrp:last-child{margin-bottom:0}
+.fgrp.full{grid-column:1/-1}
+.flabel{font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--ash)}
+.finput,.fselect,.ftextarea{
+  font-family:'DM Sans',sans-serif;font-weight:300;font-size:0.9rem;
+  color:var(--ink);background:var(--white);
+  border:1px solid var(--border);
+  padding:0.7rem 0.85rem;outline:none;
+  transition:border-color 0.2s;width:100%;
+  -webkit-appearance:none;border-radius:0;
+  min-height:44px;
+}
+.finput:focus,.fselect:focus,.ftextarea:focus{border-color:var(--green-mid)}
+.finput.error{border-color:var(--crimson)}
+.ftextarea{resize:vertical;min-height:75px}
+.fselect{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236A6459'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 0.9rem center;
+  padding-right:2.2rem;cursor:pointer;
+}
+
+/* ── PAYMENT OPTIONS ── */
+.pay-opts{display:flex;flex-direction:column;gap:0.6rem}
+.pay-opt{
+  display:flex;align-items:center;gap:0.85rem;
+  padding:1rem 1.1rem;cursor:pointer;
+  border:1.5px solid var(--border);background:var(--white);
+  transition:border-color 0.2s,background 0.2s;
+  position:relative;
+}
+.pay-opt.selected{border-color:var(--green);background:var(--cream)}
+.pay-opt input[type=radio]{
+  width:18px;height:18px;accent-color:var(--green);
+  cursor:pointer;flex-shrink:0;
+}
+.pay-icon{font-size:1.3rem;flex-shrink:0}
+.pay-info{flex:1}
+.pay-name{font-size:0.84rem;color:var(--ink);line-height:1.2}
+.pay-desc{font-size:0.67rem;color:var(--ash);margin-top:0.18rem;line-height:1.4}
+.pay-badge{
+  font-size:0.52rem;letter-spacing:0.1em;text-transform:uppercase;
+  background:var(--green);color:#fff;
+  padding:0.2rem 0.55rem;position:absolute;top:-1px;right:-1px;
+}
+
+/* ── TRUST ROW ── */
+.trust-row{display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:1.2rem;justify-content:center}
+.trust-chip{
+  font-size:0.6rem;letter-spacing:0.08em;
+  color:var(--ash);border:1px solid var(--border);
+  padding:0.35rem 0.75rem;
+  display:flex;align-items:center;gap:0.3rem;
+}
+
+/* ── STICKY BOTTOM BAR ── */
+.bottom-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:300;
+  background:rgba(251,249,245,0.98);backdrop-filter:blur(14px);
+  border-top:1px solid var(--border);
+  padding:0.75rem 1.2rem;
+  padding-bottom:calc(0.75rem + env(safe-area-inset-bottom));
+  display:flex;align-items:center;gap:0.85rem;
+}
+.bb-total{flex:1}
+.bb-total-label{font-size:0.55rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--ash)}
+.bb-total-val{font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--ink);line-height:1.1}
+.bb-btn{
+  flex:1.8;height:48px;
+  background:var(--green);color:#fff;border:none;cursor:pointer;
+  font-family:'DM Sans',sans-serif;font-size:0.68rem;
+  letter-spacing:0.2em;text-transform:uppercase;
+  transition:background 0.2s,transform 0.12s;
+  display:flex;align-items:center;justify-content:center;gap:0.5rem;
+}
+.bb-btn:active{background:var(--green-mid);transform:scale(0.98)}
+.bb-btn:disabled{background:var(--ash);cursor:not-allowed}
+.bb-back-btn{
+  width:48px;height:48px;
+  background:none;border:1px solid var(--border);cursor:pointer;
+  color:var(--ash);font-size:1rem;
+  display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s;flex-shrink:0;
+}
+.bb-back-btn:active{background:var(--sand)}
+
+/* ── SUCCESS OVERLAY ── */
+.success-overlay{
+  display:none;position:fixed;inset:0;z-index:600;
+  background:rgba(30,28,24,0.55);
+  align-items:flex-end;justify-content:center;
+}
+.success-overlay.show{display:flex}
+.success-sheet{
+  background:var(--white);width:100%;max-height:88vh;
+  overflow-y:auto;border-radius:16px 16px 0 0;
+  padding:2rem 1.5rem 3rem;
+  text-align:center;
+  animation:slideUp 0.42s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+@keyframes slideUp{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
+.success-candle{font-size:2.8rem;margin-bottom:1rem;display:block;animation:flicker 2s ease-in-out infinite alternate}
+@keyframes flicker{0%{transform:rotate(-1deg)}100%{transform:rotate(1deg)}}
+.success-title{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:300;color:var(--ink);margin-bottom:0.6rem}
+.success-order-id{font-size:0.62rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--green-mid);margin-bottom:1.2rem;display:block}
+.success-msg{font-size:0.82rem;color:var(--ash);line-height:1.9;margin-bottom:1.8rem;max-width:300px;margin-left:auto;margin-right:auto}
+.success-divider{height:1px;background:var(--border);margin:1.2rem 0}
+.success-steps{text-align:left;margin-bottom:1.8rem}
+.success-step{display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0;border-bottom:1px solid var(--border)}
+.success-step:last-child{border-bottom:none}
+.success-step-icon{font-size:1rem;width:24px;text-align:center;flex-shrink:0}
+.success-step-text{font-size:0.75rem;color:var(--ash);line-height:1.5}
+.success-step-text strong{color:var(--ink);font-weight:400}
+.success-home{
+  display:block;width:100%;padding:0.95rem;
+  background:var(--green);color:#fff;text-decoration:none;
+  font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;
+  transition:background 0.2s;
+}
+.success-home:active{background:var(--green-mid)}
+
+/* ── REVIEW PAGE ── */
+.review-section{margin-bottom:1.2rem}
+.review-label{font-size:0.57rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--ash);margin-bottom:0.5rem;display:block}
+.review-value{font-size:0.84rem;color:var(--ink);line-height:1.6}
+.review-edit{
+  font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--green-mid);border:none;background:none;cursor:pointer;
+  padding:0;text-decoration:underline;text-underline-offset:2px;
+}
+.review-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:0.7rem}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<header class="top-bar">
+  <a class="top-bar-logo" href="index.html">
+    <img src="anh/logo-03.png" alt="MIST">
+  </a>
+  <span class="top-secure">🔒 Thanh toán an toàn</span>
+</header>
+
+<!-- STEP INDICATOR -->
+<div class="steps" id="stepsBar">
+  <div class="step active" id="s1">
+    <div class="step-dot" id="sd1">1</div>
+    <span class="step-label">Thông tin</span>
+  </div>
+  <div class="step" id="s2">
+    <div class="step-dot" id="sd2">2</div>
+    <span class="step-label">Thanh toán</span>
+  </div>
+  <div class="step" id="s3">
+    <div class="step-dot" id="sd3">3</div>
+    <span class="step-label">Xác nhận</span>
+  </div>
+</div>
+
+<!-- ORDER SUMMARY TOGGLE -->
+<div class="summary-toggle" id="summaryToggle">
+  <div class="summary-toggle-left">
+    <span class="summary-toggle-icon">🛒</span>
+    <div>
+      <div class="summary-toggle-text">Xem đơn hàng</div>
+      <div class="summary-toggle-count" id="toggleCount">0 sản phẩm</div>
+    </div>
+  </div>
+  <div class="summary-toggle-right">
+    <span class="summary-toggle-total" id="toggleTotal">0₫</span>
+    <span class="summary-chevron" id="summaryChevron">▼</span>
+  </div>
+</div>
+
+<!-- ORDER SUMMARY PANEL -->
+<div class="summary-panel" id="summaryPanel">
+  <div class="summary-inner">
+    <div id="sumItems"></div>
+    <div class="sum-divider"></div>
+    <div class="promo-row">
+      <input class="promo-inp" type="text" id="promoInput" placeholder="Nhập mã giảm giá">
+      <button class="promo-btn" id="promoBtn">Áp dụng</button>
+    </div>
+    <div class="sum-lines">
+      <div class="sum-line"><span>Tạm tính</span><span class="val" id="subtotalVal">0₫</span></div>
+      <div class="sum-line"><span>Phí vận chuyển</span><span class="val">Miễn phí</span></div>
+      <div class="sum-line discount" id="discountLine" style="display:none">
+        <span>Giảm giá</span><span class="val" id="discountVal">-0₫</span>
+      </div>
+      <div class="sum-line total">
+        <span>Tổng cộng</span><span class="val" id="totalVal">0₫</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAGE 1: THÔNG TIN GIAO HÀNG ══ -->
+<div class="page active" id="page1">
+  <div class="page-heading">
+    <span class="page-label">Bước 1 / 3</span>
+    <h1 class="page-title">Thông tin giao hàng</h1>
+  </div>
+
+  <div class="card">
+    <p class="card-label">Liên lạc</p>
+    <div class="frow">
+      <div class="fgrp">
+        <label class="flabel">Họ *</label>
+        <input class="finput" type="text" id="lastName" placeholder="Nguyễn" autocomplete="family-name">
+      </div>
+      <div class="fgrp">
+        <label class="flabel">Tên *</label>
+        <input class="finput" type="text" id="firstName" placeholder="Văn A" autocomplete="given-name">
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fgrp">
+        <label class="flabel">Số điện thoại *</label>
+        <input class="finput" type="tel" id="phone" placeholder="0901 234 567" autocomplete="tel">
+      </div>
+      <div class="fgrp">
+        <label class="flabel">Email</label>
+        <input class="finput" type="email" id="email" placeholder="email@example.com" autocomplete="email">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="card-label">Địa chỉ nhận hàng</p>
+    <div class="fgrp">
+      <label class="flabel">Địa chỉ *</label>
+      <input class="finput" type="text" id="address" placeholder="Số nhà, tên đường" autocomplete="street-address">
+    </div>
+    <div class="frow">
+      <div class="fgrp">
+        <label class="flabel">Phường / Xã</label>
+        <input class="finput" type="text" id="ward" placeholder="Phường Gia Định">
+      </div>
+      <div class="fgrp">
+        <label class="flabel">Quận / Huyện</label>
+        <input class="finput" type="text" id="district" placeholder="Quận Bình Thạnh">
+      </div>
+    </div>
+    <div class="fgrp">
+      <label class="flabel">Tỉnh / Thành phố *</label>
+      <select class="fselect" id="city" autocomplete="address-level1">
+        <option value="">-- Chọn tỉnh thành --</option>
+        <option>TP. Hồ Chí Minh</option>
+        <option>Hà Nội</option>
+        <option>Đà Nẵng</option>
+        <option>Cần Thơ</option>
+        <option>Hải Phòng</option>
+        <option>Bình Dương</option>
+        <option>Đồng Nai</option>
+        <option>Khác</option>
+      </select>
+    </div>
+    <div class="fgrp">
+      <label class="flabel">Ghi chú (không bắt buộc)</label>
+      <textarea class="ftextarea" id="note" placeholder="Ghi chú thêm cho đơn hàng..."></textarea>
+    </div>
+  </div>
+
+  <div class="trust-row">
+    <span class="trust-chip">🔒 Bảo mật SSL</span>
+    <span class="trust-chip">🚚 Miễn phí vận chuyển</span>
+    <span class="trust-chip">↩ Đổi trả 7 ngày</span>
+  </div>
+</div>
+
+<!-- ══ PAGE 2: THANH TOÁN ══ -->
+<div class="page" id="page2">
+  <div class="page-heading">
+    <span class="page-label">Bước 2 / 3</span>
+    <h1 class="page-title">Phương thức thanh toán</h1>
+  </div>
+
+  <div class="card">
+    <p class="card-label">Chọn phương thức</p>
+    <div class="pay-opts" id="paymentOptions">
+      <label class="pay-opt selected">
+        <input type="radio" name="payment" value="cod" checked>
+        <span class="pay-icon">💵</span>
+        <div class="pay-info">
+          <p class="pay-name">Thanh toán khi nhận hàng (COD)</p>
+          <p class="pay-desc">Trả tiền mặt khi giao hàng tới tay bạn</p>
+        </div>
+        <span class="pay-badge">Phổ biến</span>
+      </label>
+      <label class="pay-opt">
+        <input type="radio" name="payment" value="bank">
+        <span class="pay-icon">🏦</span>
+        <div class="pay-info">
+          <p class="pay-name">Chuyển khoản ngân hàng</p>
+          <p class="pay-desc">Thông tin tài khoản sẽ gửi qua email sau khi đặt hàng</p>
+        </div>
+      </label>
+      <label class="pay-opt">
+        <input type="radio" name="payment" value="momo">
+        <span class="pay-icon">💜</span>
+        <div class="pay-info">
+          <p class="pay-name">Ví MoMo</p>
+          <p class="pay-desc">Thanh toán nhanh qua ví điện tử MoMo</p>
+        </div>
+      </label>
+      <label class="pay-opt">
+        <input type="radio" name="payment" value="vnpay">
+        <span class="pay-icon">🔵</span>
+        <div class="pay-info">
+          <p class="pay-name">VNPay QR</p>
+          <p class="pay-desc">Quét mã QR từ app ngân hàng bất kỳ</p>
+        </div>
+      </label>
+    </div>
+  </div>
+
+  <div class="trust-row">
+    <span class="trust-chip">🔒 Mã hoá 256-bit</span>
+    <span class="trust-chip">✓ Không lưu thẻ</span>
+    <span class="trust-chip">🛡 Bảo vệ người mua</span>
+  </div>
+</div>
+
+<!-- ══ PAGE 3: XÁC NHẬN ══ -->
+<div class="page" id="page3">
+  <div class="page-heading">
+    <span class="page-label">Bước 3 / 3</span>
+    <h1 class="page-title">Xác nhận đơn hàng</h1>
+  </div>
+
+  <div class="card">
+    <p class="card-label">Thông tin giao hàng</p>
+    <div class="review-row">
+      <div>
+        <span class="review-label">Người nhận</span>
+        <span class="review-value" id="revName">—</span>
+      </div>
+      <button class="review-edit" onclick="goTo(1)">Sửa</button>
+    </div>
+    <div class="review-section">
+      <span class="review-label">Địa chỉ</span>
+      <span class="review-value" id="revAddr">—</span>
+    </div>
+    <div class="review-section">
+      <span class="review-label">Điện thoại</span>
+      <span class="review-value" id="revPhone">—</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="card-label">Thanh toán</p>
+    <div class="review-row">
+      <span class="review-value" id="revPayment">—</span>
+      <button class="review-edit" onclick="goTo(2)">Sửa</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="card-label">Đơn hàng</p>
+    <div id="revItems"></div>
+    <div class="sum-divider"></div>
+    <div class="sum-line total">
+      <span>Tổng cộng</span>
+      <span class="val" id="revTotal">0₫</span>
+    </div>
+  </div>
+
+  <p style="font-size:0.72rem;color:var(--ash);line-height:1.8;text-align:center;margin-top:0.5rem">
+    Bằng cách nhấn "Đặt hàng ngay", bạn đồng ý với<br>
+    <a href="#" style="color:var(--green-mid)">Điều khoản sử dụng</a> của MIST.
+  </p>
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar" id="bottomBar">
+  <button class="bb-back-btn" id="bbBack" style="display:none" aria-label="Quay lại">←</button>
+  <div class="bb-total">
+    <div class="bb-total-label">Tổng cộng</div>
+    <div class="bb-total-val" id="bbTotal">0₫</div>
+  </div>
+  <button class="bb-btn" id="bbNext">
+    <span id="bbNextLabel">Tiếp tục</span> →
+  </button>
+</div>
+
+<!-- SUCCESS SHEET -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-sheet">
+    <span class="success-candle">🕯️</span>
+    <h2 class="success-title">Đặt hàng thành công!</h2>
+    <span class="success-order-id" id="successOrderId"></span>
+    <p class="success-msg">
+      Cảm ơn bạn đã tin tưởng MIST. Chúng tôi sẽ liên hệ xác nhận đơn hàng trong thời gian sớm nhất.
+    </p>
+    <div class="success-divider"></div>
+    <div class="success-steps">
+      <div class="success-step">
+        <span class="success-step-icon">📧</span>
+        <div class="success-step-text"><strong>Email xác nhận</strong> sẽ được gửi trong vài phút</div>
+      </div>
+      <div class="success-step">
+        <span class="success-step-icon">📦</span>
+        <div class="success-step-text"><strong>Đóng gói & giao hàng</strong> trong 1–2 ngày làm việc</div>
+      </div>
+      <div class="success-step">
+        <span class="success-step-icon">🚚</span>
+        <div class="success-step-text"><strong>Giao hàng dự kiến</strong> trong 3–5 ngày</div>
+      </div>
+    </div>
+    <a class="success-home" href="index.html">← Về trang chủ</a>
+  </div>
+</div>
+
+<script>
+/* ── DATA ── */
+const products=[
+  {id:1,nameVi:'Nến Cà Phê',   scentVi:'Gỗ & Nhựa',  price:'150,000₫',img:'anh/coffee1.png'},
+  {id:2,nameVi:'Nến Hoa Nhài', scentVi:'Hoa cỏ',      price:'150,000₫',img:'anh/jasmine1.png'},
+  {id:3,nameVi:'Nến Sả Chanh', scentVi:'Thảo mộc',    price:'150,000₫',img:'anh/lemongrass1.png'},
+  {id:4,nameVi:'Nến Cam',      scentVi:'Cam Chanh',    price:'150,000₫',img:'anh/cam1.png'},
+  {id:5,nameVi:'Nến Hoa Hồng', scentVi:'Hoa cỏ',      price:'150,000₫',img:'anh/rose1.png'},
+];
+const PROMO={'MIST15':0.15,'WELCOME':0.1};
+const payLabel={'cod':'Thanh toán khi nhận hàng','bank':'Chuyển khoản ngân hàng','momo':'Ví MoMo','vnpay':'VNPay QR'};
+
+let cart=[];
+try{const r=localStorage.getItem('mist_cart');if(r)cart=JSON.parse(r);}catch(e){}
+let discount=0;
+let currentStep=1;
+
+function priceNum(s){return parseInt(s.replace(/[^0-9]/g,''))||0}
+function fmtVND(n){return n.toLocaleString('vi-VN')+'₫'}
+
+/* ── RENDER SUMMARY ── */
+function calcSubtotal(){
+  return cart.reduce((s,c)=>{
+    const p=products.find(x=>x.id===c.id);
+    return s+(p?priceNum(p.price)*c.qty:0);
+  },0);
+}
+function renderSummary(){
+  const sub=calcSubtotal();
+  const total=Math.max(0,sub-discount);
+  const count=cart.reduce((s,c)=>s+c.qty,0);
+
+  document.getElementById('toggleCount').textContent=count+' sản phẩm';
+  document.getElementById('toggleTotal').textContent=fmtVND(total);
+  document.getElementById('subtotalVal').textContent=fmtVND(sub);
+  document.getElementById('totalVal').textContent=fmtVND(total);
+  document.getElementById('bbTotal').textContent=fmtVND(total);
+
+  if(discount>0){
+    document.getElementById('discountLine').style.display='';
+    document.getElementById('discountVal').textContent='-'+fmtVND(discount);
+  }
+
+  const box=document.getElementById('sumItems');
+  if(!cart.length){box.innerHTML='<p style="font-size:0.78rem;color:var(--ash);padding:0.5rem 0">Giỏ hàng trống.</p>';return;}
+  box.innerHTML=cart.map(c=>{
+    const p=products.find(x=>x.id===c.id);if(!p)return'';
+    return`<div class="sum-item">
+      <div class="sum-img-wrap">
+        <img class="sum-img" src="${p.img}" alt="${p.nameVi}">
+        <span class="sum-qty-badge">${c.qty}</span>
+      </div>
+      <div>
+        <div class="sum-scent">${p.scentVi}</div>
+        <div class="sum-name">${p.nameVi}</div>
+      </div>
+      <span class="sum-price">${fmtVND(priceNum(p.price)*c.qty)}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ── SUMMARY TOGGLE ── */
+let summaryOpen=false;
+document.getElementById('summaryToggle').addEventListener('click',()=>{
+  summaryOpen=!summaryOpen;
+  document.getElementById('summaryPanel').classList.toggle('open',summaryOpen);
+  document.getElementById('summaryChevron').classList.toggle('open',summaryOpen);
+});
+
+/* ── PROMO ── */
+document.getElementById('promoBtn').addEventListener('click',()=>{
+  const code=document.getElementById('promoInput').value.trim().toUpperCase();
+  const inp=document.getElementById('promoInput');
+  if(PROMO[code]){
+    discount=Math.round(calcSubtotal()*PROMO[code]);
+    renderSummary();
+    inp.classList.remove('error');inp.classList.add('success');
+  }else{
+    inp.classList.add('error');inp.classList.remove('success');
+    inp.value='';inp.placeholder='Mã không hợp lệ';
+    setTimeout(()=>{inp.placeholder='Nhập mã giảm giá';},2000);
+  }
+});
+
+/* ── PAYMENT OPTIONS ── */
+document.querySelectorAll('.pay-opt').forEach(opt=>{
+  opt.addEventListener('click',()=>{
+    document.querySelectorAll('.pay-opt').forEach(o=>o.classList.remove('selected'));
+    opt.classList.add('selected');
+  });
+});
+
+/* ── STEP NAVIGATION ── */
+const stepLabels=['','Tiếp tục','Xem lại đơn hàng','Đặt hàng ngay'];
+const stepBtns=['','Tiếp tục →','Xem lại →','🕯️ Đặt hàng ngay'];
+
+function goTo(n){
+  if(n===currentStep)return;
+  document.getElementById('page'+currentStep).classList.remove('active');
+
+  // Mark steps
+  for(let i=1;i<=3;i++){
+    const s=document.getElementById('s'+i);
+    const d=document.getElementById('sd'+i);
+    s.classList.remove('active','done');
+    if(i<n){s.classList.add('done');d.textContent='✓';}
+    else if(i===n){s.classList.add('active');d.textContent=i;}
+    else{d.textContent=i;}
+  }
+
+  currentStep=n;
+  document.getElementById('page'+n).classList.add('active');
+  document.getElementById('bbNextLabel').textContent=stepLabels[n];
+  document.getElementById('bbBack').style.display=n>1?'flex':'none';
+
+  // Fill review
+  if(n===3)fillReview();
+
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function fillReview(){
+  const fn=document.getElementById('firstName').value.trim();
+  const ln=document.getElementById('lastName').value.trim();
+  const ph=document.getElementById('phone').value.trim();
+  const addr=document.getElementById('address').value.trim();
+  const ward=document.getElementById('ward').value.trim();
+  const dist=document.getElementById('district').value.trim();
+  const city=document.getElementById('city').value;
+  const payVal=document.querySelector('input[name=payment]:checked')?.value||'cod';
+
+  document.getElementById('revName').textContent=(ln+' '+fn).trim()||'—';
+  document.getElementById('revPhone').textContent=ph||'—';
+  const addrParts=[addr,ward,dist,city].filter(Boolean);
+  document.getElementById('revAddr').textContent=addrParts.join(', ')||'—';
+  document.getElementById('revPayment').textContent=payLabel[payVal]||'—';
+
+  const total=Math.max(0,calcSubtotal()-discount);
+  document.getElementById('revTotal').textContent=fmtVND(total);
+
+  const box=document.getElementById('revItems');
+  box.innerHTML=cart.map(c=>{
+    const p=products.find(x=>x.id===c.id);if(!p)return'';
+    return`<div class="sum-item">
+      <div class="sum-img-wrap">
+        <img class="sum-img" src="${p.img}" alt="${p.nameVi}">
+        <span class="sum-qty-badge">${c.qty}</span>
+      </div>
+      <div><div class="sum-scent">${p.scentVi}</div><div class="sum-name">${p.nameVi}</div></div>
+      <span class="sum-price">${fmtVND(priceNum(p.price)*c.qty)}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ── VALIDATE STEP 1 ── */
+function validateStep1(){
+  const req=['lastName','firstName','phone','address','city'];
+  let ok=true;
+  req.forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el.value.trim()){el.classList.add('error');ok=false;}
+    else el.classList.remove('error');
+  });
+  if(!ok){
+    document.querySelector('.finput.error')?.scrollIntoView({behavior:'smooth',block:'center'});
+  }
+  return ok;
+}
+
+/* ── NEXT / SUBMIT ── */
+document.getElementById('bbNext').addEventListener('click',()=>{
+  if(currentStep===1){if(validateStep1())goTo(2);}
+  else if(currentStep===2){goTo(3);}
+  else if(currentStep===3){submitOrder();}
+});
+document.getElementById('bbBack').addEventListener('click',()=>{
+  if(currentStep>1)goTo(currentStep-1);
+});
+
+function submitOrder(){
+  const btn=document.getElementById('bbNext');
+  btn.disabled=true;
+  btn.innerHTML='<span>Đang xử lý...</span>';
+  setTimeout(()=>{
+    const orderId='MIST-'+Date.now().toString().slice(-6);
+    document.getElementById('successOrderId').textContent='Mã đơn hàng: '+orderId;
+    localStorage.removeItem('mist_cart');
+    document.getElementById('successOverlay').classList.add('show');
+  },1200);
+}
+
+/* ── INIT ── */
+renderSummary();
+document.getElementById('bbNextLabel').textContent='Tiếp tục';
+if(!cart.length){document.getElementById('bbNext').disabled=true;}
+</script>
+</body>
+</html>

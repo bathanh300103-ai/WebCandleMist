@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Checkout — MIST</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --orange:#C96A1A;--amber:#E8960A;
+  --green:#2D5226;--green-mid:#3D6B35;
+  --crimson:#7A1525;
+  --cream:#F7F3EC;--white:#FBF9F5;--sand:#EDE6D8;
+  --ink:#1E1C18;--ash:#6A6459;
+  --border:rgba(30,28,24,0.1);--border2:rgba(30,28,24,0.18);
+}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{font-family:'DM Sans',sans-serif;font-weight:300;background:var(--white);color:var(--ink);min-height:100vh;padding-bottom:90px}
+
+/* ── NAV ── */
+.top-bar{
+  position:sticky;top:0;z-index:200;
+  background:rgba(251,249,245,0.97);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 1.2rem;height:56px;
+}
+.top-bar-logo img{height:80px;width:auto;object-fit:contain;display:block;transform:scale(1.1);transform-origin:left center}
+.top-secure{font-size:0.6rem;color:var(--ash);letter-spacing:0.08em;display:flex;align-items:center;gap:0.3rem}
+
+/* ── STEPS ── */
+.steps{
+  display:flex;align-items:center;
+  padding:0 1.2rem;height:48px;
+  background:var(--cream);border-bottom:1px solid var(--border);
+}
+.step{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  position:relative;
+}
+.step:not(:last-child)::after{
+  content:'';position:absolute;top:10px;left:calc(50% + 14px);
+  width:calc(100% - 28px);height:1px;background:var(--border2);
+}
+.step.done:not(:last-child)::after{background:var(--green)}
+.step-dot{
+  width:20px;height:20px;border-radius:50%;
+  background:var(--sand);border:1px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.55rem;color:var(--ash);
+  transition:all 0.3s;position:relative;z-index:1;
+}
+.step.active .step-dot{background:var(--green);border-color:var(--green);color:#fff}
+.step.done .step-dot{background:var(--green);border-color:var(--green);color:#fff;font-size:0.7rem}
+.step-label{font-size:0.48rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--ash);margin-top:3px}
+.step.active .step-label{color:var(--green)}
+
+/* ── ORDER SUMMARY TOGGLE ── */
+.summary-toggle{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0.9rem 1.2rem;
+  background:var(--sand);border-bottom:1px solid var(--border);
+  cursor:pointer;user-select:none;
+}
+.summary-toggle-left{display:flex;align-items:center;gap:0.6rem}
+.summary-toggle-icon{font-size:1.1rem}
+.summary-toggle-text{font-size:0.7rem;letter-spacing:0.1em;color:var(--ink)}
+.summary-toggle-count{font-size:0.58rem;letter-spacing:0.1em;color:var(--ash);margin-top:1px}
+.summary-toggle-right{display:flex;align-items:center;gap:0.8rem}
+.summary-toggle-total{font-family:'Cormorant Garamond',serif;font-size:1.15rem;color:var(--ink)}
+.summary-chevron{font-size:0.7rem;color:var(--ash);transition:transform 0.28s}
+.summary-chevron.open{transform:rotate(180deg)}
+
+.summary-panel{
+  max-height:0;overflow:hidden;
+  transition:max-height 0.4s cubic-bezier(0.4,0,0.2,1);
+  background:var(--cream);border-bottom:1px solid var(--border);
+}
+.summary-panel.open{max-height:600px}
+.summary-inner{padding:1rem 1.2rem 1.2rem}
+
+.sum-item{
+  display:grid;grid-template-columns:52px 1fr auto;
+  gap:0.75rem;align-items:center;
+  padding:0.65rem 0;border-bottom:1px solid var(--border);
+}
+.sum-item:last-of-type{border-bottom:none}
+.sum-img-wrap{position:relative}
+.sum-img{width:52px;height:52px;object-fit:cover;border:1px solid var(--border);display:block}
+.sum-qty-badge{
+  position:absolute;top:-6px;right:-6px;
+  background:var(--ash);color:#fff;
+  width:18px;height:18px;border-radius:50%;
+  font-size:0.55rem;display:flex;align-items:center;justify-content:center;
+}
+.sum-name{font-family:'Cormorant Garamond',serif;font-size:0.92rem;color:var(--ink);line-height:1.2}
+.sum-scent{font-size:0.55rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--green-mid);margin-bottom:2px}
+.sum-price{font-size:0.82rem;color:var(--ink);white-space:nowrap}
+
+.sum-divider{height:1px;background:var(--border);margin:0.7rem 0}
+
+.promo-row{display:flex;gap:0.5rem;margin-bottom:0.9rem}
+.promo-inp{
+  flex:1;font-family:'DM Sans',sans-serif;font-weight:300;font-size:0.82rem;
+  border:1px solid var(--border);background:var(--white);
+  padding:0.55rem 0.85rem;outline:none;transition:border-color 0.2s;color:var(--ink);
+}
+.promo-inp:focus{border-color:var(--green-mid)}
+.promo-inp.error{border-color:var(--crimson)}
+.promo-inp.success{border-color:var(--green-mid)}
+.promo-btn{
+  font-family:'DM Sans',sans-serif;font-size:0.62rem;
+  letter-spacing:0.12em;text-transform:uppercase;
+  background:none;border:1px solid var(--border);
+  color:var(--ash);padding:0 1rem;cursor:pointer;
+  transition:all 0.2s;white-space:nowrap;min-height:40px;
+}
+.promo-btn:active{background:var(--green);color:#fff;border-color:var(--green)}
+
+.sum-line{
+  display:flex;justify-content:space-between;align-items:baseline;
+  font-size:0.75rem;color:var(--ash);padding:0.3rem 0;
+}
+.sum-line.discount{color:var(--green-mid)}
+.sum-line.total{
+  font-size:0.82rem;color:var(--ink);
+  padding:0.65rem 0 0;margin-top:0.3rem;
+  border-top:1px solid var(--border2);
+}
+.sum-line.total .val{font-family:'Cormorant Garamond',serif;font-size:1.35rem}
+
+/* ── FORM PAGES ── */
+.page{display:none;padding:1.5rem 1.2rem}
+.page.active{display:block}
+
+.page-heading{margin-bottom:1.5rem}
+.page-label{font-size:0.6rem;letter-spacing:0.28em;text-transform:uppercase;color:var(--green-mid);display:block;margin-bottom:0.3rem}
+.page-title{font-family:'Cormorant Garamond',serif;font-size:1.7rem;font-weight:300;color:var(--ink);line-height:1.1}
+
+.card{background:var(--cream);border:1px solid var(--border);padding:1.2rem 1.1rem;margin-bottom:1rem}
+.card-label{font-size:0.58rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--ash);margin-bottom:0.9rem;padding-bottom:0.6rem;border-bottom:1px solid var(--border)}
+
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem}
+.fgrp{display:flex;flex-direction:column;gap:0.35rem;margin-bottom:0.85rem}
+.fgrp:last-child{margin-bottom:0}
+.flabel{font-size:0.6rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--ash)}
+.finput,.fselect,.ftextarea{
+  font-family:'DM Sans',sans-serif;font-weight:300;font-size:0.9rem;
+  color:var(--ink);background:var(--white);
+  border:1px solid var(--border);
+  padding:0.7rem 0.85rem;outline:none;
+  transition:border-color 0.2s;width:100%;
+  -webkit-appearance:none;border-radius:0;min-height:44px;
+}
+.finput:focus,.fselect:focus,.ftextarea:focus{border-color:var(--green-mid)}
+.finput.error{border-color:var(--crimson)}
+.ftextarea{resize:vertical;min-height:75px}
+.fselect{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236A6459'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 0.9rem center;
+  padding-right:2.2rem;cursor:pointer;
+}
+
+/* ── SHIPPING OPTIONS ── */
+.ship-opts{display:flex;flex-direction:column;gap:0.6rem;margin-bottom:0.85rem}
+.ship-opt{
+  display:flex;align-items:center;gap:0.85rem;
+  padding:0.9rem 1.1rem;cursor:pointer;
+  border:1.5px solid var(--border);background:var(--white);
+  transition:border-color 0.2s,background 0.2s;
+}
+.ship-opt.selected{border-color:var(--green);background:var(--cream)}
+.ship-opt input[type=radio]{width:18px;height:18px;accent-color:var(--green);flex-shrink:0}
+.ship-icon{font-size:1.2rem;flex-shrink:0}
+.ship-info{flex:1}
+.ship-name{font-size:0.84rem;color:var(--ink)}
+.ship-eta{font-size:0.67rem;color:var(--ash);margin-top:0.15rem}
+.ship-price{font-size:0.82rem;color:var(--ink);white-space:nowrap;font-family:'Cormorant Garamond',serif}
+
+/* ── PAYMENT OPTIONS ── */
+.pay-opts{display:flex;flex-direction:column;gap:0.6rem}
+.pay-opt{
+  display:flex;align-items:center;gap:0.85rem;
+  padding:1rem 1.1rem;cursor:pointer;
+  border:1.5px solid var(--border);background:var(--white);
+  transition:border-color 0.2s,background 0.2s;
+  position:relative;
+}
+.pay-opt.selected{border-color:var(--green);background:var(--cream)}
+.pay-opt input[type=radio]{width:18px;height:18px;accent-color:var(--green);flex-shrink:0}
+.pay-icon{font-size:1.3rem;flex-shrink:0}
+.pay-info{flex:1}
+.pay-name{font-size:0.84rem;color:var(--ink);line-height:1.2}
+.pay-desc{font-size:0.67rem;color:var(--ash);margin-top:0.18rem;line-height:1.4}
+.pay-badge{
+  font-size:0.52rem;letter-spacing:0.1em;text-transform:uppercase;
+  background:var(--green);color:#fff;padding:0.2rem 0.55rem;
+  position:absolute;top:-1px;right:-1px;
+}
+.pay-logos{display:flex;gap:0.4rem;margin-top:0.5rem;flex-wrap:wrap}
+.pay-logo-chip{
+  font-size:0.55rem;letter-spacing:0.08em;
+  border:1px solid var(--border);padding:0.2rem 0.5rem;
+  color:var(--ash);
+}
+
+/* ── CARD FIELDS ── */
+.card-fields{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);display:none}
+.card-fields.show{display:block}
+.card-number-wrap{position:relative}
+.card-lock{position:absolute;right:0.85rem;top:50%;transform:translateY(-50%);font-size:0.85rem;opacity:0.4}
+
+/* ── TRUST ROW ── */
+.trust-row{display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:1.2rem;justify-content:center}
+.trust-chip{
+  font-size:0.6rem;letter-spacing:0.08em;color:var(--ash);
+  border:1px solid var(--border);padding:0.35rem 0.75rem;
+  display:flex;align-items:center;gap:0.3rem;
+}
+
+/* ── BOTTOM BAR ── */
+.bottom-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:300;
+  background:rgba(251,249,245,0.98);backdrop-filter:blur(14px);
+  border-top:1px solid var(--border);
+  padding:0.75rem 1.2rem;
+  padding-bottom:calc(0.75rem + env(safe-area-inset-bottom));
+  display:flex;align-items:center;gap:0.85rem;
+}
+.bb-total{flex:1}
+.bb-total-label{font-size:0.55rem;letter-spacing:0.16em;text-transform:uppercase;color:var(--ash)}
+.bb-total-val{font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:var(--ink);line-height:1.1}
+.bb-btn{
+  flex:1.8;height:48px;
+  background:var(--green);color:#fff;border:none;cursor:pointer;
+  font-family:'DM Sans',sans-serif;font-size:0.68rem;
+  letter-spacing:0.2em;text-transform:uppercase;
+  transition:background 0.2s,transform 0.12s;
+  display:flex;align-items:center;justify-content:center;gap:0.5rem;
+}
+.bb-btn:active{background:var(--green-mid);transform:scale(0.98)}
+.bb-btn:disabled{background:var(--ash);cursor:not-allowed}
+.bb-back-btn{
+  width:48px;height:48px;display:none;
+  background:none;border:1px solid var(--border);cursor:pointer;
+  color:var(--ash);font-size:1rem;
+  align-items:center;justify-content:center;
+  transition:all 0.2s;flex-shrink:0;
+}
+.bb-back-btn:active{background:var(--sand)}
+
+/* ── REVIEW ── */
+.review-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:0.85rem}
+.review-label{font-size:0.57rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--ash);margin-bottom:0.3rem;display:block}
+.review-value{font-size:0.84rem;color:var(--ink);line-height:1.6}
+.review-edit{
+  font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--green-mid);border:none;background:none;cursor:pointer;
+  padding:0;text-decoration:underline;text-underline-offset:2px;flex-shrink:0;
+}
+.review-section{margin-bottom:0.85rem}
+
+/* ── SUCCESS SHEET ── */
+.success-overlay{
+  display:none;position:fixed;inset:0;z-index:600;
+  background:rgba(30,28,24,0.55);
+  align-items:flex-end;justify-content:center;
+}
+.success-overlay.show{display:flex}
+.success-sheet{
+  background:var(--white);width:100%;max-height:88vh;
+  overflow-y:auto;border-radius:16px 16px 0 0;
+  padding:2rem 1.5rem 3rem;text-align:center;
+  animation:slideUp 0.42s cubic-bezier(0.22,1,0.36,1) forwards;
+}
+@keyframes slideUp{from{transform:translateY(60px);opacity:0}to{transform:translateY(0);opacity:1}}
+.success-candle{font-size:2.8rem;margin-bottom:1rem;display:block;animation:flicker 2s ease-in-out infinite alternate}
+@keyframes flicker{0%{transform:rotate(-1deg)}100%{transform:rotate(1deg)}}
+.success-title{font-family:'Cormorant Garamond',serif;font-size:1.9rem;font-weight:300;color:var(--ink);margin-bottom:0.6rem}
+.success-order-id{font-size:0.62rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--green-mid);margin-bottom:1.2rem;display:block}
+.success-msg{font-size:0.82rem;color:var(--ash);line-height:1.9;margin-bottom:1.8rem;max-width:300px;margin-left:auto;margin-right:auto}
+.success-divider{height:1px;background:var(--border);margin:1.2rem 0}
+.success-steps{text-align:left;margin-bottom:1.8rem}
+.success-step{display:flex;align-items:center;gap:0.75rem;padding:0.6rem 0;border-bottom:1px solid var(--border)}
+.success-step:last-child{border-bottom:none}
+.success-step-icon{font-size:1rem;width:24px;text-align:center;flex-shrink:0}
+.success-step-text{font-size:0.75rem;color:var(--ash);line-height:1.5}
+.success-step-text strong{color:var(--ink);font-weight:400}
+.success-home{
+  display:block;width:100%;padding:0.95rem;
+  background:var(--green);color:#fff;text-decoration:none;
+  font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;
+  transition:background 0.2s;
+}
+.success-home:active{background:var(--green-mid)}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<header class="top-bar">
+  <a class="top-bar-logo" href="index.html">
+    <img src="anh/logo-03.png" alt="MIST">
+  </a>
+  <span class="top-secure">🔒 Secure checkout</span>
+</header>
+
+<!-- STEPS -->
+<div class="steps" id="stepsBar">
+  <div class="step active" id="s1">
+    <div class="step-dot" id="sd1">1</div>
+    <span class="step-label">Shipping</span>
+  </div>
+  <div class="step" id="s2">
+    <div class="step-dot" id="sd2">2</div>
+    <span class="step-label">Payment</span>
+  </div>
+  <div class="step" id="s3">
+    <div class="step-dot" id="sd3">3</div>
+    <span class="step-label">Review</span>
+  </div>
+</div>
+
+<!-- ORDER SUMMARY TOGGLE -->
+<div class="summary-toggle" id="summaryToggle">
+  <div class="summary-toggle-left">
+    <span class="summary-toggle-icon">🛒</span>
+    <div>
+      <div class="summary-toggle-text">Order summary</div>
+      <div class="summary-toggle-count" id="toggleCount">0 items</div>
+    </div>
+  </div>
+  <div class="summary-toggle-right">
+    <span class="summary-toggle-total" id="toggleTotal">₫0</span>
+    <span class="summary-chevron" id="summaryChevron">▼</span>
+  </div>
+</div>
+
+<!-- SUMMARY PANEL -->
+<div class="summary-panel" id="summaryPanel">
+  <div class="summary-inner">
+    <div id="sumItems"></div>
+    <div class="sum-divider"></div>
+    <div class="promo-row">
+      <input class="promo-inp" type="text" id="promoInput" placeholder="Promo code">
+      <button class="promo-btn" id="promoBtn">Apply</button>
+    </div>
+    <div class="sum-lines">
+      <div class="sum-line"><span>Subtotal</span><span class="val" id="subtotalVal">₫0</span></div>
+      <div class="sum-line"><span>Shipping</span><span class="val" id="shippingVal">Free</span></div>
+      <div class="sum-line discount" id="discountLine" style="display:none">
+        <span>Discount</span><span class="val" id="discountVal">-₫0</span>
+      </div>
+      <div class="sum-line total">
+        <span>Total</span><span class="val" id="totalVal">₫0</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAGE 1: SHIPPING ══ -->
+<div class="page active" id="page1">
+  <div class="page-heading">
+    <span class="page-label">Step 1 of 3</span>
+    <h1 class="page-title">Shipping information</h1>
+  </div>
+
+  <div class="card">
+    <p class="card-label">Contact</p>
+    <div class="frow">
+      <div class="fgrp">
+        <label class="flabel">First name *</label>
+        <input class="finput" type="text" id="firstName" placeholder="Jane" autocomplete="given-name">
+      </div>
+      <div class="fgrp">
+        <label class="flabel">Last name *</label>
+        <input class="finput" type="text" id="lastName" placeholder="Smith" autocomplete="family-name">
+      </div>
+    </div>
+    <div class="frow">
+      <div class="fgrp">
+        <label class="flabel">Phone *</label>
+        <input class="finput" type="tel" id="phone" placeholder="+1 555 000 0000" autocomplete="tel">
+      </div>
+      <div class="fgrp">
+        <label class="flabel">Email</label>
+        <input class="finput" type="email" id="email" placeholder="jane@example.com" autocomplete="email">
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="card-label">Delivery address</p>
+    <div class="fgrp">
+      <label class="flabel">Address *</label>
+      <input class="finput" type="text" id="address" placeholder="Street address" autocomplete="street-address">
+    </div>
+    <div class="fgrp">
+      <label class="flabel">Apt, suite, etc. (optional)</label>
+      <input class="finput" type="text" id="apt" placeholder="Apt 4B" autocomplete="address-line2">
+    </div>
+    <div class="frow">
+      <div class="fgrp">
+        <label class="flabel">City *</label>
+        <input class="finput" type="text" id="city" placeholder="Ho Chi Minh City" autocomplete="address-level2">
+      </div>
+      <div class="fgrp">
+        <label class="flabel">Postal code</label>
+        <input class="finput" type="text" id="postal" placeholder="700000" autocomplete="postal-code">
+      </div>
+    </div>
+    <div class="fgrp">
+      <label class="flabel">Country</label>
+      <select class="fselect" id="country" autocomplete="country">
+        <option value="VN">Vietnam</option>
+        <option value="US">United States</option>
+        <option value="GB">United Kingdom</option>
+        <option value="AU">Australia</option>
+        <option value="SG">Singapore</option>
+        <option value="JP">Japan</option>
+        <option value="KR">South Korea</option>
+        <option value="FR">France</option>
+        <option value="DE">Germany</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="fgrp">
+      <label class="flabel">Order notes (optional)</label>
+      <textarea class="ftextarea" id="note" placeholder="Special instructions for your order..."></textarea>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="card-label">Shipping method</p>
+    <div class="ship-opts" id="shippingOpts">
+      <label class="ship-opt selected">
+        <input type="radio" name="shipping" value="standard" checked>
+        <span class="ship-icon">📦</span>
+        <div class="ship-info">
+          <p class="ship-name">Standard Shipping</p>
+          <p class="ship-eta">Delivered in 5–7 business days</p>
+        </div>
+        <span class="ship-price">Free</span>
+      </label>
+      <label class="ship-opt">
+        <input type="radio" name="shipping" value="express">
+        <span class="ship-icon">⚡</span>
+        <div class="ship-info">
+          <p class="ship-name">Express Shipping</p>
+          <p class="ship-eta">Delivered in 2–3 business days</p>
+        </div>
+        <span class="ship-price">₫50,000</span>
+      </label>
+    </div>
+  </div>
+
+  <div class="trust-row">
+    <span class="trust-chip">🔒 SSL Encrypted</span>
+    <span class="trust-chip">🚚 Free standard shipping</span>
+    <span class="trust-chip">↩ 7-day returns</span>
+  </div>
+</div>
+
+<!-- ══ PAGE 2: PAYMENT ══ -->
+<div class="page" id="page2">
+  <div class="page-heading">
+    <span class="page-label">Step 2 of 3</span>
+    <h1 class="page-title">Payment method</h1>
+  </div>
+
+  <div class="card">
+    <p class="card-label">Choose how to pay</p>
+    <div class="pay-opts" id="paymentOptions">
+
+      <label class="pay-opt selected">
+        <input type="radio" name="payment" value="card" checked>
+        <span class="pay-icon">💳</span>
+        <div class="pay-info">
+          <p class="pay-name">Credit / Debit card</p>
+          <p class="pay-desc">All major cards accepted</p>
+          <div class="pay-logos">
+            <span class="pay-logo-chip">Visa</span>
+            <span class="pay-logo-chip">Mastercard</span>
+            <span class="pay-logo-chip">Amex</span>
+            <span class="pay-logo-chip">JCB</span>
+          </div>
+        </div>
+        <span class="pay-badge">Secure</span>
+      </label>
+
+      <!-- Card fields (shown when card is selected) -->
+      <div class="card-fields show" id="cardFields">
+        <div class="fgrp">
+          <label class="flabel">Card number</label>
+          <div class="card-number-wrap">
+            <input class="finput" type="text" id="cardNum" placeholder="0000 0000 0000 0000"
+                   inputmode="numeric" maxlength="19" autocomplete="cc-number">
+            <span class="card-lock">🔒</span>
+          </div>
+        </div>
+        <div class="frow">
+          <div class="fgrp">
+            <label class="flabel">Expiry date</label>
+            <input class="finput" type="text" id="cardExp" placeholder="MM / YY"
+                   inputmode="numeric" maxlength="7" autocomplete="cc-exp">
+          </div>
+          <div class="fgrp">
+            <label class="flabel">CVV</label>
+            <input class="finput" type="text" id="cardCvv" placeholder="•••"
+                   inputmode="numeric" maxlength="4" autocomplete="cc-csc">
+          </div>
+        </div>
+        <div class="fgrp">
+          <label class="flabel">Name on card</label>
+          <input class="finput" type="text" id="cardName" placeholder="Jane Smith" autocomplete="cc-name">
+        </div>
+      </div>
+
+      <label class="pay-opt">
+        <input type="radio" name="payment" value="paypal">
+        <span class="pay-icon">🅿️</span>
+        <div class="pay-info">
+          <p class="pay-name">PayPal</p>
+          <p class="pay-desc">You'll be redirected to PayPal to complete payment</p>
+        </div>
+      </label>
+
+      <label class="pay-opt">
+        <input type="radio" name="payment" value="cod">
+        <span class="pay-icon">💵</span>
+        <div class="pay-info">
+          <p class="pay-name">Cash on delivery (COD)</p>
+          <p class="pay-desc">Pay in cash when your order arrives</p>
+        </div>
+      </label>
+
+      <label class="pay-opt">
+        <input type="radio" name="payment" value="bank">
+        <span class="pay-icon">🏦</span>
+        <div class="pay-info">
+          <p class="pay-name">Bank transfer</p>
+          <p class="pay-desc">Account details will be sent to your email after checkout</p>
+        </div>
+      </label>
+    </div>
+  </div>
+
+  <div class="trust-row">
+    <span class="trust-chip">🔒 256-bit encryption</span>
+    <span class="trust-chip">✓ Cards not stored</span>
+    <span class="trust-chip">🛡 Buyer protection</span>
+  </div>
+</div>
+
+<!-- ══ PAGE 3: REVIEW ══ -->
+<div class="page" id="page3">
+  <div class="page-heading">
+    <span class="page-label">Step 3 of 3</span>
+    <h1 class="page-title">Review your order</h1>
+  </div>
+
+  <div class="card">
+    <p class="card-label">Shipping details</p>
+    <div class="review-row">
+      <div>
+        <span class="review-label">Recipient</span>
+        <span class="review-value" id="revName">—</span>
+      </div>
+      <button class="review-edit" onclick="goTo(1)">Edit</button>
+    </div>
+    <div class="review-section">
+      <span class="review-label">Address</span>
+      <span class="review-value" id="revAddr">—</span>
+    </div>
+    <div class="review-section">
+      <span class="review-label">Phone</span>
+      <span class="review-value" id="revPhone">—</span>
+    </div>
+    <div class="review-section">
+      <span class="review-label">Shipping method</span>
+      <span class="review-value" id="revShipping">—</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="card-label">Payment</p>
+    <div class="review-row">
+      <span class="review-value" id="revPayment">—</span>
+      <button class="review-edit" onclick="goTo(2)">Edit</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <p class="card-label">Items</p>
+    <div id="revItems"></div>
+    <div class="sum-divider"></div>
+    <div class="sum-line"><span>Subtotal</span><span class="val" id="revSubtotal">₫0</span></div>
+    <div class="sum-line"><span>Shipping</span><span class="val" id="revShippingCost">Free</span></div>
+    <div class="sum-line discount" id="revDiscountLine" style="display:none">
+      <span>Discount</span><span class="val" id="revDiscount">-₫0</span>
+    </div>
+    <div class="sum-line total">
+      <span>Total</span><span class="val" id="revTotal">₫0</span>
+    </div>
+  </div>
+
+  <p style="font-size:0.72rem;color:var(--ash);line-height:1.8;text-align:center;margin-top:0.5rem">
+    By placing your order you agree to MIST's<br>
+    <a href="#" style="color:var(--green-mid)">Terms &amp; Conditions</a> and
+    <a href="#" style="color:var(--green-mid)">Privacy Policy</a>.
+  </p>
+</div>
+
+<!-- BOTTOM BAR -->
+<div class="bottom-bar">
+  <button class="bb-back-btn" id="bbBack" aria-label="Go back">←</button>
+  <div class="bb-total">
+    <div class="bb-total-label">Total</div>
+    <div class="bb-total-val" id="bbTotal">₫0</div>
+  </div>
+  <button class="bb-btn" id="bbNext">
+    <span id="bbNextLabel">Continue</span> →
+  </button>
+</div>
+
+<!-- SUCCESS SHEET -->
+<div class="success-overlay" id="successOverlay">
+  <div class="success-sheet">
+    <span class="success-candle">🕯️</span>
+    <h2 class="success-title">Order confirmed!</h2>
+    <span class="success-order-id" id="successOrderId"></span>
+    <p class="success-msg">
+      Thank you for choosing MIST. We'll send you a confirmation email and contact you shortly to confirm your order.
+    </p>
+    <div class="success-divider"></div>
+    <div class="success-steps">
+      <div class="success-step">
+        <span class="success-step-icon">📧</span>
+        <div class="success-step-text"><strong>Confirmation email</strong> will arrive within a few minutes</div>
+      </div>
+      <div class="success-step">
+        <span class="success-step-icon">📦</span>
+        <div class="success-step-text"><strong>Packed &amp; dispatched</strong> within 1–2 business days</div>
+      </div>
+      <div class="success-step">
+        <span class="success-step-icon">🚚</span>
+        <div class="success-step-text"><strong>Estimated delivery</strong> in 3–7 business days</div>
+      </div>
+    </div>
+    <a class="success-home" href="index.html">← Back to shop</a>
+  </div>
+</div>
+
+<script>
+/* ── DATA ── */
+const products=[
+  {id:1,nameEn:'Coffee Candle',   scentEn:'Woody',   price:'150,000₫',img:'anh/coffee1.png'},
+  {id:2,nameEn:'Jasmine Candle',  scentEn:'Floral',  price:'150,000₫',img:'anh/jasmine1.png'},
+  {id:3,nameEn:'Lemongrass Candle',scentEn:'Herbal', price:'150,000₫',img:'anh/lemongrass1.png'},
+  {id:4,nameEn:'Orange Candle',   scentEn:'Citrus',  price:'150,000₫',img:'anh/cam1.png'},
+  {id:5,nameEn:'Rose Candle',     scentEn:'Floral',  price:'150,000₫',img:'anh/rose1.png'},
+];
+const PROMO={'MIST15':0.15,'WELCOME':0.1};
+const payLabel={card:'Credit / Debit card',paypal:'PayPal',cod:'Cash on delivery',bank:'Bank transfer'};
+const shipLabel={standard:'Standard Shipping (5–7 days)',express:'Express Shipping (2–3 days)'};
+const shipCost={standard:0,express:50000};
+
+let cart=[];
+try{const r=localStorage.getItem('mist_cart');if(r)cart=JSON.parse(r);}catch(e){}
+let discount=0;
+let shippingCost=0;
+let currentStep=1;
+
+function priceNum(s){return parseInt(s.replace(/[^0-9]/g,''))||0}
+function fmtVND(n){return '₫'+n.toLocaleString('vi-VN')}
+
+/* ── SUMMARY ── */
+function calcSubtotal(){
+  return cart.reduce((s,c)=>{
+    const p=products.find(x=>x.id===c.id);
+    return s+(p?priceNum(p.price)*c.qty:0);
+  },0);
+}
+function renderSummary(){
+  const sub=calcSubtotal();
+  const total=Math.max(0,sub-discount)+shippingCost;
+  const count=cart.reduce((s,c)=>s+c.qty,0);
+
+  document.getElementById('toggleCount').textContent=count+(count===1?' item':' items');
+  document.getElementById('toggleTotal').textContent=fmtVND(total);
+  document.getElementById('subtotalVal').textContent=fmtVND(sub);
+  document.getElementById('shippingVal').textContent=shippingCost?fmtVND(shippingCost):'Free';
+  document.getElementById('totalVal').textContent=fmtVND(total);
+  document.getElementById('bbTotal').textContent=fmtVND(total);
+
+  if(discount>0){
+    document.getElementById('discountLine').style.display='';
+    document.getElementById('discountVal').textContent='-'+fmtVND(discount);
+  }
+
+  const box=document.getElementById('sumItems');
+  if(!cart.length){box.innerHTML='<p style="font-size:0.78rem;color:var(--ash);padding:0.5rem 0">Your cart is empty.</p>';return;}
+  box.innerHTML=cart.map(c=>{
+    const p=products.find(x=>x.id===c.id);if(!p)return'';
+    return`<div class="sum-item">
+      <div class="sum-img-wrap">
+        <img class="sum-img" src="${p.img}" alt="${p.nameEn}">
+        <span class="sum-qty-badge">${c.qty}</span>
+      </div>
+      <div>
+        <div class="sum-scent">${p.scentEn}</div>
+        <div class="sum-name">${p.nameEn}</div>
+      </div>
+      <span class="sum-price">${fmtVND(priceNum(p.price)*c.qty)}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ── SUMMARY TOGGLE ── */
+let summaryOpen=false;
+document.getElementById('summaryToggle').addEventListener('click',()=>{
+  summaryOpen=!summaryOpen;
+  document.getElementById('summaryPanel').classList.toggle('open',summaryOpen);
+  document.getElementById('summaryChevron').classList.toggle('open',summaryOpen);
+});
+
+/* ── PROMO ── */
+document.getElementById('promoBtn').addEventListener('click',()=>{
+  const code=document.getElementById('promoInput').value.trim().toUpperCase();
+  const inp=document.getElementById('promoInput');
+  if(PROMO[code]){
+    discount=Math.round(calcSubtotal()*PROMO[code]);
+    renderSummary();
+    inp.classList.remove('error');inp.classList.add('success');
+  }else{
+    inp.classList.add('error');inp.classList.remove('success');
+    inp.value='';inp.placeholder='Invalid code';
+    setTimeout(()=>{inp.placeholder='Promo code';},2000);
+  }
+});
+
+/* ── SHIPPING OPTIONS ── */
+document.querySelectorAll('.ship-opt').forEach(opt=>{
+  opt.addEventListener('click',()=>{
+    document.querySelectorAll('.ship-opt').forEach(o=>o.classList.remove('selected'));
+    opt.classList.add('selected');
+    const val=opt.querySelector('input').value;
+    shippingCost=shipCost[val]||0;
+    renderSummary();
+  });
+});
+
+/* ── PAYMENT OPTIONS & CARD FIELDS ── */
+document.querySelectorAll('.pay-opt').forEach(opt=>{
+  opt.addEventListener('click',()=>{
+    document.querySelectorAll('.pay-opt').forEach(o=>o.classList.remove('selected'));
+    opt.classList.add('selected');
+    const val=opt.querySelector('input')?.value;
+    document.getElementById('cardFields').classList.toggle('show',val==='card');
+  });
+});
+
+/* ── CARD FORMATTING ── */
+document.getElementById('cardNum')?.addEventListener('input',e=>{
+  let v=e.target.value.replace(/\D/g,'').slice(0,16);
+  e.target.value=v.replace(/(.{4})/g,'$1 ').trim();
+});
+document.getElementById('cardExp')?.addEventListener('input',e=>{
+  let v=e.target.value.replace(/\D/g,'').slice(0,4);
+  if(v.length>2)v=v.slice(0,2)+' / '+v.slice(2);
+  e.target.value=v;
+});
+
+/* ── STEP NAVIGATION ── */
+const stepLabels={1:'Continue',2:'Review order',3:'Place order'};
+
+function goTo(n){
+  if(n===currentStep)return;
+  document.getElementById('page'+currentStep).classList.remove('active');
+  for(let i=1;i<=3;i++){
+    const s=document.getElementById('s'+i);
+    const d=document.getElementById('sd'+i);
+    s.classList.remove('active','done');
+    if(i<n){s.classList.add('done');d.textContent='✓';}
+    else if(i===n){s.classList.add('active');d.textContent=i;}
+    else{d.textContent=i;}
+  }
+  currentStep=n;
+  document.getElementById('page'+n).classList.add('active');
+  document.getElementById('bbNextLabel').textContent=stepLabels[n];
+  const bb=document.getElementById('bbBack');
+  bb.style.display=n>1?'flex':'none';
+  if(n===3)fillReview();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function fillReview(){
+  const fn=document.getElementById('firstName').value.trim();
+  const ln=document.getElementById('lastName').value.trim();
+  const ph=document.getElementById('phone').value.trim();
+  const addr=document.getElementById('address').value.trim();
+  const apt=document.getElementById('apt').value.trim();
+  const city=document.getElementById('city').value.trim();
+  const postal=document.getElementById('postal').value.trim();
+  const country=document.getElementById('country');
+  const countryText=country.options[country.selectedIndex]?.text||'';
+  const payVal=document.querySelector('input[name=payment]:checked')?.value||'card';
+  const shipVal=document.querySelector('input[name=shipping]:checked')?.value||'standard';
+
+  document.getElementById('revName').textContent=([fn,ln].filter(Boolean).join(' '))||'—';
+  document.getElementById('revPhone').textContent=ph||'—';
+  const parts=[addr,apt,city,postal,countryText].filter(Boolean);
+  document.getElementById('revAddr').textContent=parts.join(', ')||'—';
+  document.getElementById('revPayment').textContent=payLabel[payVal]||'—';
+  document.getElementById('revShipping').textContent=shipLabel[shipVal]||'—';
+
+  const sub=calcSubtotal();
+  const total=Math.max(0,sub-discount)+shippingCost;
+  document.getElementById('revSubtotal').textContent=fmtVND(sub);
+  document.getElementById('revShippingCost').textContent=shippingCost?fmtVND(shippingCost):'Free';
+  document.getElementById('revTotal').textContent=fmtVND(total);
+  if(discount>0){
+    document.getElementById('revDiscountLine').style.display='';
+    document.getElementById('revDiscount').textContent='-'+fmtVND(discount);
+  }
+
+  const box=document.getElementById('revItems');
+  box.innerHTML=cart.map(c=>{
+    const p=products.find(x=>x.id===c.id);if(!p)return'';
+    return`<div class="sum-item">
+      <div class="sum-img-wrap">
+        <img class="sum-img" src="${p.img}" alt="${p.nameEn}">
+        <span class="sum-qty-badge">${c.qty}</span>
+      </div>
+      <div><div class="sum-scent">${p.scentEn}</div><div class="sum-name">${p.nameEn}</div></div>
+      <span class="sum-price">${fmtVND(priceNum(p.price)*c.qty)}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ── VALIDATE STEP 1 ── */
+function validateStep1(){
+  const req=['firstName','lastName','phone','address','city'];
+  let ok=true;
+  req.forEach(id=>{
+    const el=document.getElementById(id);
+    if(!el||!el.value.trim()){if(el)el.classList.add('error');ok=false;}
+    else el.classList.remove('error');
+  });
+  if(!ok)document.querySelector('.finput.error')?.scrollIntoView({behavior:'smooth',block:'center'});
+  return ok;
+}
+
+/* ── NEXT / BACK / SUBMIT ── */
+document.getElementById('bbNext').addEventListener('click',()=>{
+  if(currentStep===1){if(validateStep1())goTo(2);}
+  else if(currentStep===2){goTo(3);}
+  else if(currentStep===3){submitOrder();}
+});
+document.getElementById('bbBack').addEventListener('click',()=>{
+  if(currentStep>1)goTo(currentStep-1);
+});
+
+function submitOrder(){
+  const btn=document.getElementById('bbNext');
+  btn.disabled=true;
+  btn.innerHTML='<span>Processing…</span>';
+  setTimeout(()=>{
+    const orderId='MIST-'+Date.now().toString().slice(-6);
+    document.getElementById('successOrderId').textContent='Order #'+orderId;
+    localStorage.removeItem('mist_cart');
+    document.getElementById('successOverlay').classList.add('show');
+  },1400);
+}
+
+/* ── INIT ── */
+renderSummary();
+document.getElementById('bbNextLabel').textContent='Continue';
+if(!cart.length)document.getElementById('bbNext').disabled=true;
+</script>
+</body>
+</html>
